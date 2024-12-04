@@ -1,0 +1,5 @@
+SQL
+-difficulty, start_money lisätty vain omaan tietokantaan!
+
+Python
+-activeGame.location voisi olla myös airport olio, toistaiseksi on dict
