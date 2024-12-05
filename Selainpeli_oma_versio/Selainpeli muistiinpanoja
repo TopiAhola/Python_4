@@ -24,5 +24,6 @@ TAI:
 Ja olion luominen dictin pohjalta:
 You can also convert the other way (dict->class) by typing MyClass(**my_dict), assuming you have defined a constructor with parameters that mirror the class attributes
 
+-Dictionary on case sensitive!! Pitää formatoida kaikki syötteet .upper()
 
-
+- (Lennot käyttävät oletuksena vähäpäästöisen lennon kertoimia cost * 0.3 ja co2 * 0.1) EI! EI KERTOIMIA

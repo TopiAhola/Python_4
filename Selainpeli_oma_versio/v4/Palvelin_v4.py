@@ -31,13 +31,13 @@ class Game:
         self.location = {"goal": False, "visited": False, "icao": "efhk", "name": "espoo", "country": "suomi", "lat": "50.22","lon": "20.22", "gdp": "0"}
         self.debugmessage = self.debugmessage +"fly_testi_funktio," #Lisää stringin debug kentään kun funktio toimii
 
-
-class Airports:
+#Airport testi luokka: 
+class Airport:
     airports = {}
 
     def __init__(self, icao, flights):
         self.icao = icao
-        Airports.airports[self.icao] = self #Lisätään luokkalistaan
+        Airport.airports[self.icao] = self #Lisätään luokkalistaan
         self.flights = flights
 
 
@@ -57,7 +57,7 @@ def get_airports():
 
 #Toimii :)
 testilista = [ {"name": "testinimi", "country": "testi1", "icao": "efhk", "cost": "x", "distance": "100", "co2": "50"}]
-testikentta = Airports("efhk",testilista )
+testikentta = Airport("efhk",testilista )
 
 #######################################################
 ## Tietorakenne ##
@@ -120,11 +120,13 @@ def server_newgame(name, difficulty):
 
 @app.route('/<flight_type>/<destination>')
 def server_input(flight_type, destination):
+    destination = destination.upper() #ICAO koodit on isolla kirjaimella
+    flight_type = flight_type.upper()
     Game.activeGame.fly_testi(flight_type, destination)#1.tekee lennon muutokset (lisää päästöjä, vähemmän rahaa, saapumispalkkio, )
 
     # 2. haetaan uudet lennot airports luokasta ja tallenetaan Game.activeGame.flights attribuuttiin
     # Tämä olisi helpompi jos game.location olisi airport olio...
-    Game.activeGame.flights = Airports.airports[Game.activeGame.location["icao"]].flights
+    Game.activeGame.flights = Airport.airports[Game.activeGame.location["icao"]].flights
     vastaus = Game.activeGame.get_data() #hakee tiedot
     vastaus_json = json.dumps(vastaus)
     return vastaus_json
