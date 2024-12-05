@@ -12,7 +12,7 @@ from geopy import distance
 
 #Game luokka:
 class Game:
-    activeGame = object
+    active_game = ""
     games = {}
     #Game sisältää kaikki pelaajan tiedot
     def __init__(self, **kwargs):
@@ -21,6 +21,8 @@ class Game:
 
         for icao, object2 in Airport.airports.items():
             self.airports[icao] = object2
+
+        self.goals = {}
 
     #get_data palauttaa pelaajan tiedot dictionarynä   ##Tämä tehdään uusiksi site, että serveri varastoi tiedot dic mutta palauttaa listan
     #      lista = list(dict.values())
@@ -60,6 +62,8 @@ class Game:
             if icao4 not in goals_icao and icao4 != self.location.icao:
                 goals_icao.append(icao4)
                 self.goals[icao4] = object4
+                print(len(goals_icao))
+                print(self.goals)
         print("Asetetaan tavoitteet:")
         for icao in goals_icao:
             self.airports[icao].goal = True
@@ -88,16 +92,16 @@ class Game:
         if dest in self.goals:
             self.goals[dest].visited = True
             print("Saavutut tavoitteen")
-        # Rahaa saa 2*gdp. Arvon muuttaminen vaikuttaa vaikeusasteeseen.
+
         if self.airports[dest].visited == False:
             self.airports[dest].visited = True
-            gain = self.airports[dest].gdp * 2
+            gain = self.airports[dest].gdp * 2  # Rahaa saa 2*gdp. Arvon muuttaminen vaikuttaa vaikeusasteeseen.
             self.money = self.money + gain
             self.money_gained = self.money_gained + gain
             self.money_gained_total = self.money_gained_total +gain
             print(f"Saat rahaa {gain}")
 
-        self.message = f"Saavut lentokentälle {self.location.name}"
+        self.message = f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}"
 
     def goal_check(self): #Tarkistaa onko peli voitettu. Muokkaa game_status arvon "gamewon"
         gamewon = True
@@ -228,38 +232,41 @@ CORS(app)
 
 @app.route('/loadgame/<name>')
 def server_loadgame(name):
-    Game.activeGame = Game.games[name] #Vaihtaa aktiivisen peliobjektin nimen perusteella
+    Game.active_game = name #Vaihtaa aktiivisen peliobjektin nimen perusteella
 
-    return json.dumps(Game.activeGame.get_data())
+    return json.dumps(Game.games[Game.active_game].get_data())
 
-@app.route('/newgame/<name>/<difficulty>')
-def server_newgame(name, difficulty):
+@app.route('/newgame/<nimi>/<difficulty>')
+def server_newgame(nimi, difficulty):
     #Alustaa uuden pelin. game_data muuttujat laitetaan oletusarvoihin ja lisätään pelaajan nimi:
-    game = Game(**game_data_default)                                #Määritellään pelaaja Game luokkaan oletus attribuuteilla
-    game.name = name                                                #Asetetaan oikea nimi ja vaikeusaste
-    game.difficulty = difficulty
-    game.money = game.start_money = 2000                            #Tämän pitää olla vaikeusasteen funktio
-    Game.activeGame = game                                          #Pelaajaoliota kutsutaan: Game.activeGame
-    Game.games[game.name] = game                                    #Game.games dic sisältää kaikki pelit. Avaimena nimi.
-    Game.activeGame.start_and_goals()                                          #Antaa pelaajalle sijainnin ja tavoitteet
-    Game.activeGame.flights = Airport.airports[game.location.icao].flights  #Päivittää pelaajalle tarjolla olevat lennot.
+    nimi_str = str(nimi)
+    nimi = Game(**game_data_default)                                                #Määritellään pelaaja Game luokkaan oletus attribuuteilla
+    Game.games[nimi_str] = nimi                                                      #Pelaajaoliota kutsutaan: Game.games[active_game]
+    Game.active_game = nimi_str                                                     #Laitetaan luokkamuuttuja osoittamaan uusimpaan peliin
+    Game.games[Game.active_game].name = nimi_str                                             #Asetetaan oikea nimi ja vaikeusaste
+    Game.games[Game.active_game].difficulty = difficulty
+    Game.games[Game.active_game].money = 2000
+    Game.games[Game.active_game].start_money = 2000                            #Tämän pitää olla vaikeusasteen funktio
+    #Game.games[Game.activeGame.name] = nimi                                    #Game.games dic sisältää kaikki pelit. Avaimena nimi.
+    Game.games[Game.active_game].start_and_goals()                                          #Antaa pelaajalle sijainnin ja tavoitteet
+    Game.games[Game.active_game].flights = Airport.airports[Game.games[Game.active_game].location.icao].flights  #Päivittää pelaajalle tarjolla olevat lennot.
     #Tähän voi lisätä jokerilentofunktion
-    print(Game.activeGame.goals)
+    print(Game.games[Game.active_game].goals)
     print(Game.games)
-    return json.dumps(Game.activeGame.get_data())                              #haetaan pelin tilanne game.get_data()
+    return json.dumps(Game.games[Game.active_game].get_data())                              #haetaan pelin tilanne game.get_data()
 
 
 @app.route('/<flight_type>/<destination>')
 def server_input(flight_type, destination):
     destination = destination.upper()                                                   #ICAO koodit on isolla kirjaimella
     flight_type = flight_type.upper()                                                   #Lentoluokka SMALL/NORMAL/HIGH
-    Game.activeGame.fly(flight_type, destination)                                       #tekee lennon muutokset (lisää päästöjä, vähemmän rahaa, saapumispalkkio, )
-    Game.activeGame.flights = Airport.airports[Game.activeGame.location.icao].flights #Päivittää pelaajalle tarjolla olevat lennot.
+    Game.games[Game.active_game].fly(flight_type, destination)                                       #tekee lennon muutokset (lisää päästöjä, vähemmän rahaa, saapumispalkkio, )
+    Game.games[Game.active_game].flights = Airport.airports[Game.games[Game.active_game].location.icao].flights #Päivittää pelaajalle tarjolla olevat lennot.
     #Tähän voi lisätä jokerilentofunktion
-    Game.activeGame.goal_check()                        #TArkistaa onko pelaaja voittanut pelin. Palauttaa gamewon tai gameinprogress
-    Game.activeGame.money_check()                       #Tarkistaa voiko pelaaja enää lentää. Palauttaa gameover tai gameinprogress kunhan peliä ei ole voitettu.
+    Game.games[Game.active_game].goal_check()                        #TArkistaa onko pelaaja voittanut pelin. Palauttaa gamewon tai gameinprogress
+    Game.games[Game.active_game].money_check()                       #Tarkistaa voiko pelaaja enää lentää. Palauttaa gameover tai gameinprogress kunhan peliä ei ole voitettu.
 
-    return json.dumps(Game.activeGame.get_data())       #haetaan pelin tilanne game.get_data()
+    return json.dumps(Game.games[Game.active_game].get_data())       #haetaan pelin tilanne game.get_data()
 
 if True:
     app.run(use_reloader=True, host='127.0.0.1', port=3000)

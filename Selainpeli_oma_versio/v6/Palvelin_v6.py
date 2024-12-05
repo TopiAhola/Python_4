@@ -66,7 +66,7 @@ class Game:
 
         # Rahaa saa 2*gdp. Arvon muuttaminen vaikuttaa vaikeusasteeseen.
 
-        self.message = f"Saavut lentokentälle {self.location['name']. }"
+        self.message = f"Saavut lentokentälle {self.location['name']}"
 
     def goal_check(self): #Tarkistaa onko peli voitettu. Muokkaa game_status arvon "gamewon"
         gamewon = True
