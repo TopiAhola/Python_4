@@ -66,7 +66,6 @@ def server_newgame(name, difficulty):
 @app.route('/<flight_type>/<destination>')
 def server_input(flight_type, destination):
 
-
     Game.activeGame[0].fly_testi(flight_type, destination) #tekee lennon muutokset
     vastaus = Game.activeGame[0].get_data() #hakee tiedot
     vastaus_json = json.dumps(vastaus)

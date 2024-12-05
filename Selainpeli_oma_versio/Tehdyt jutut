@@ -2,4 +2,4 @@ SQL
 -difficulty, start_money lisätty vain omaan tietokantaan!
 
 Python
--activeGame.location voisi olla myös airport olio, toistaiseksi on dict
+-activeGame.location voisi olla myös airport olio, toistaiseksi on dict. Tai ei voi olla? Antaa erroreita.
