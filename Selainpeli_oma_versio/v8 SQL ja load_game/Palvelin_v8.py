@@ -7,6 +7,9 @@ import json
 import random
 from geopy import distance
 
+
+
+
 #########################################################################################
 ## Luokat ##
 
@@ -20,7 +23,7 @@ class Game:
             setattr(self, key, value)
 
         self.airports = {}
-        self.create_airports()  # Luodaan kentät
+        self.create_airports()                      # Luodaan kentät game objektille
         for icao, object1 in self.airports.items():  # Luodaan alustavat lennot
             object1.create_flights(self)
         for icao, object1 in self.airports.items():  # Luodaan paluulennot
@@ -104,6 +107,7 @@ class Game:
             cost = dist  #oletuskerroin on 1
             co2 = dist   #oletuskerroin on 1
 
+        self.flights_total = self.flights_total + 1
         self.money = self.money - cost
         self.money_spent_total = self.money_spent_total + cost
         self.co2 = self.co2 + co2
@@ -165,6 +169,20 @@ class Game:
                 self.game_status = "gameover"
                 self.message = "Sinulla ei ole varaa lentää. Hävisit pelin!"
 
+    def save_game(self): #Tallentaa pelin tiedot tietokantaan
+        sql = (f"UPDATE game "
+               f"SET game.location = '{self.location}', game.money = '{game_money}', game.co2 = '{game_co2}' , game.money_gained = '{game_money_gained}', game.money_spent = '{game_money_spent}', "
+               f"game.distance = '{game_distance}', game.flights = '{game_flights}' WHERE game.id = '{game_id}' ")
+
+
+
+
+
+        kursori.execute(sql)
+        yhteys.commit()
+
+
+
 
 ############################################################
 ## Airport luokka
@@ -213,20 +231,6 @@ class Airport:
         self.flights.append(flight)
         # print(flight)
 
-
-
-##################################################################################################################
-## Pääohjelma ##
-
-## Tietokanta ##
-parametrit = {"host": 'localhost', 'database': 'flight_game', 'user': 'game', 'password': '',"collation": "latin1_swedish_ci"}
-yhteys = mysql.connector.connect(**parametrit)
-kursori = yhteys.cursor()
-
-## Funktiot
-
-## Pääohjelman koodi:
-
 #######################################################
 ## Tietorakenne ##
 #Pelaajan aloitusarvot ilman satunnaistamista:
@@ -244,6 +248,7 @@ game_data_default = {
         "co2": 0,
         "money_gained_total": 0,
         "money_spent_total": 0,
+        "flights_total": 0,
         "distance": 0,
         "location": object,
         "flights": [],
@@ -255,6 +260,63 @@ game_data_default = {
 airport_default = {"goal": False, "visited": False, "icao": "efhk", "name": "vantaa", "country": "suomi", "lat": "50.22","lon": "20.22", "gdp": "10"}
 flight_default = {"name": "a", "country": "suomi", "icao": "efhk", "cost": "x", "distance": "100", "co2": "50","lat": "50.22", "lon": "20.22"}
 ##################################################################################################################
+
+
+##################################################################################################################
+## Pääohjelma ##
+
+## Tietokanta ##
+parametrit = {"host": 'localhost', 'database': 'flight_game', 'user': 'game', 'password': '',"collation": "latin1_swedish_ci"}
+yhteys = mysql.connector.connect(**parametrit)
+kursori = yhteys.cursor()
+
+## Funktiot
+
+## Pääohjelman koodi:
+#Pääohjelma hakee tietokannasta tallennetut pelit ja syöttää ne olioina Game-luokkaan
+# ensin luodaan objektit oletustiedoilla, sitten muokataan attr tietokannan mukaan
+
+kursori2 = yhteys.cursor(dictionary=True)
+game_sql = f"SELECT * FROM game"
+kursori2.execute(game_sql)
+game_vastaus = kursori2.fetchall()
+for rivi in game_vastaus:
+    loaded_game = Game(**game_data_default) #Luokkaan oletus attr
+
+    loaded_game.status = rivi["status"]
+    loaded_game.message = rivi["message"]
+    loaded_game.debugmessage = rivi["debugmessage"]
+    loaded_game.name= rivi["name"]
+    loaded_game.difficulty = rivi["difficulty"]
+    loaded_game.location = loaded_game.airports[rivi["location"]]
+    loaded_game.money = rivi["money"]
+    loaded_game.money_gained_total = rivi["money_gained"]
+    loaded_game.co2 = rivi["co2"]
+    loaded_game.money_spent_total = rivi["money_spent"]
+    loaded_game.flights_total = rivi["flights"]
+    loaded_game.distance = rivi["distance"]
+    loaded_game.start_money = rivi["start_money"]
+    loaded_game.flights = loaded_game.location.flights
+    Game.games[loaded_game.name] = loaded_game  # lisätään Game.games dictiin
+
+    loaded_game_id = rivi["id"] #id tarvitaan seuraavaan sql hakuun
+    goal_sql = f"SELECT * FROM goal WHERE game_id={loaded_game_id}" #Haetaan tavoitteet
+    kursori2.execute(goal_sql)
+    goal_vastaus = kursori2.fetchall()
+    for rivi in goal_vastaus:
+        loaded_game.goals[rivi["ident"]] = loaded_game.airports[rivi["ident"]] #Laitetaan airport obj goals dict
+        loaded_game.goals[rivi["ident"]].goal = True    #Laitetaan airport obj goal attr = True
+
+    visited_sql = f"SELECT * FROM visited WHERE game_id={loaded_game_id}"
+    kursori2.execute(visited_sql)
+    visited_vastaus = kursori2.fetchall()
+    for rivi in visited_vastaus:
+        loaded_game.airports[rivi["ident"]].visited = True #Airport visited attr = True kaikille vierailluille kentille
+    print("Haetaan tallennetut pelit:")
+    print(loaded_game.name, Game.games[loaded_game.name])
+
+
+
 ## Flask ##
 # Flask serveri pitää olla viimeisenä koodissa jotta muuttujat ja funktiot on määritelty.
 app = Flask(__name__)
@@ -269,21 +331,20 @@ def server_loadgame(name):
 @app.route('/newgame/<nimi>/<difficulty>')
 def server_newgame(nimi, difficulty):
     #Alustaa uuden pelin. game_data muuttujat laitetaan oletusarvoihin ja lisätään pelaajan nimi:
-    nimi_str = str(nimi)
-    nimi = Game(**game_data_default)                                                #Määritellään pelaaja Game luokkaan oletus attribuuteilla
-    Game.games[nimi_str] = nimi                                                      #Pelaajaoliota kutsutaan: Game.games[active_game]
-    Game.active_game = nimi_str                                                     #Laitetaan luokkamuuttuja osoittamaan uusimpaan peliin
-    Game.games[Game.active_game].name = nimi_str                                             #Asetetaan oikea nimi ja vaikeusaste
+    new_game = Game(**game_data_default)                                                #Määritellään pelaaja Game luokkaan oletus attribuuteilla
+    Game.games[nimi] = new_game                                                      #Pelaajaoliota kutsutaan: Game.games[active_game] Olisi parempi laittaa vain Game.active_game...
+    Game.active_game = nimi                                                     #Laitetaan luokkamuuttuja osoittamaan uusimpaan peliin
+    Game.games[Game.active_game].name = nimi
     Game.games[Game.active_game].difficulty = difficulty
     Game.games[Game.active_game].money = 2000
     Game.games[Game.active_game].start_money = 2000                            #Tämän pitää olla vaikeusasteen funktio
-    #Game.games[Game.activeGame.name] = nimi                                    #Game.games dic sisältää kaikki pelit. Avaimena nimi.
-    Game.games[Game.active_game].start_and_goals()                                          #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
-
+    Game.games[Game.active_game].start_and_goals()                              #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
+    Game.games[Game.active_game].bonus_flights()
     #Tähän voi lisätä jokerilentofunktion
     print(Game.games[Game.active_game].goals)
     print(Game.games)
-    return json.dumps(Game.games[Game.active_game].get_data())                              #haetaan pelin tilanne game.get_data()
+    Game.games[Game.active_game].save_game()                                    #Tallentaa tietokantaan
+    return json.dumps(Game.games[Game.active_game].get_data())                   #haetaan pelin tilanne game.get_data()
 
 
 @app.route('/<flight_type>/<destination>')
@@ -294,10 +355,15 @@ def server_input(flight_type, destination):
     Game.games[Game.active_game].bonus_flights()                     #Lisätään lentoja pelaajan lentolistaan
     Game.games[Game.active_game].goal_check()                        #TArkistaa onko pelaaja voittanut pelin. Palauttaa gamewon tai gameinprogress
     Game.games[Game.active_game].money_check()                       #Tarkistaa voiko pelaaja enää lentää. Palauttaa gameover tai gameinprogress kunhan peliä ei ole voitettu.
-
+    Game.games[Game.active_game].save_game()                          #Tallentaa tietokantaan
     return json.dumps(Game.games[Game.active_game].get_data())       #haetaan pelin tilanne game.get_data()
 
+
+@app.route('/gamelist')
+def server_gamelist(): #Palauttaa listan Game luokan objektien nimistä. Objektit luodaan tietokantaan tallennetuista peleistä.
+    return json.dumps(list(Game.games.keys()))
+
 if True:
-    app.run(use_reloader=True, host='127.0.0.1', port=3000)
+    app.run(host='127.0.0.1', port=3000) # use_reloader=True pois toistaiseksi
 
 

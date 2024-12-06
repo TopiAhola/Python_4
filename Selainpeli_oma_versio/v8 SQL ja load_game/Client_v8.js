@@ -14,6 +14,9 @@ lomake2.addEventListener("submit", play_game);
 let lomake3 = document.getElementById("lomake3");
 lomake3.addEventListener("submit", load_game);
 
+//Lomake 4 tallennusten hakemiseksi
+let lomake4 = document.getElementById("lomake4");
+lomake4.addEventListener("click", game_list);
 
 async function new_game() {
     console.log("new_game funktio")
@@ -26,6 +29,7 @@ async function new_game() {
         let vastaus1 = await fetch(query);
         let vastaus1_json = await vastaus1.json();
         console.log(vastaus1_json)
+        document.getElementById("tuloste").innerHTML = vastaus1_json;
           }
     catch (error) {
     console.log(error.message);
@@ -60,8 +64,26 @@ async function load_game() {
         let vastaus3 = await fetch(query);
         let vastaus3_json = await vastaus3.json();
         console.log(vastaus3_json)
+        document.getElementById("tuloste").innerHTML = vastaus3_json;
           }
     catch (error) {
     console.log(error.message);
   }
+}
+
+async function game_list() {
+  console.log("game_list funktio")
+  event.preventDefault()
+  //let name2 = document.getElementById("nimi2").value;
+    let query =`http://127.0.0.1:3000/gamelist`
+    console.log(query)
+    try {
+        let vastaus4 = await fetch(query);
+        let vastaus4_json = await vastaus4.json();
+        console.log(vastaus4_json)
+        document.getElementById("tuloste").innerHTML = vastaus4_json;
+          }
+    catch (error) {
+      console.log(error.message);
+    }
 }
