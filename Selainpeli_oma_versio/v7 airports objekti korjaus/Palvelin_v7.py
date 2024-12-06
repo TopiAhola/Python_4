@@ -19,10 +19,26 @@ class Game:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        self.goals = {}
         self.airports = {}
-        for icao, object2 in Airport.airports.items():
-            self.airports[icao] = object2
+        self.create_airports()  # Luodaan kentät
+        for icao, object1 in self.airports.items():  # Luodaan alustavat lennot
+            object1.create_flights(self)
+        for icao, object1 in self.airports.items():  # Luodaan paluulennot
+            object1.more_flights(self)
+
+        self.goals = {}
+
+        #for icao, object2 in Airport.airports.items():   Turhaa koodia???
+            #self.airports[icao] = object2
+
+    def create_airports(self):
+        sql1 = f"SELECT * FROM kentat"
+        kursori.execute(sql1)
+        vastaus = kursori.fetchall()
+        for kentta in vastaus:
+            kentta_kwargs = {"goal": False, "visited": False, "icao": kentta[1], "name": kentta[3],
+                             "country": kentta[18], "lat": kentta[4], "lon": kentta[5], "gdp": kentta[19]}
+            Airport(self, **kentta_kwargs)
 
 
 
@@ -57,11 +73,12 @@ class Game:
 
     def start_and_goals(self):   #asettaa pelaajalle aloituskentän ja tavoitteet
         icao3, object3 = random.choice(list(self.airports.items())) #Satunnaisen kentän tiedot sijainniksi
-        self.location = object3
-
+        self.location = object3 #Asetetaan sijainti
+        self.flights = object3.flights #Annetaan sijainnin lennot pelaajan lennoiksi
+        self.airports[self.location.icao].visited = True #Pelaaja on käynyt aloituskentällä
         goals_icao = []
         while len(goals_icao) < 5:
-            icao4, object4 = random.choice(list(Airport.airports.items()))
+            icao4, object4 = random.choice(list(self.airports.items()))
             if icao4 not in goals_icao and icao4 != self.location.icao:
                 goals_icao.append(icao4)
                 self.goals[icao4] = object4
@@ -75,14 +92,14 @@ class Game:
     def fly(self, flight_type, dest):
         dist = int(distance.distance((self.location.lat, self.location.lon), (self.airports[dest].lat, self.airports[dest].lon)).km)
         if flight_type == "SMALL":
-            cost = dist*0.3
-            co2 = dist*0.1
+            cost = int(dist*0.3)
+            co2 = int(dist*0.1)
         elif flight_type == "NORMAL":
-            cost = dist*0.2
-            co2 = dist*0.2
+            cost = int(dist*0.2)
+            co2 = int(dist*0.2)
         elif flight_type == "HIGH":
-            cost = dist*0.1
-            co2 = dist*0.3
+            cost = int(dist*0.1)
+            co2 = int(dist*0.3)
         else:
             cost = dist  #oletuskerroin on 1
             co2 = dist   #oletuskerroin on 1
@@ -90,12 +107,15 @@ class Game:
         self.money = self.money - cost
         self.money_spent_total = self.money_spent_total + cost
         self.co2 = self.co2 + co2
-        self.location = Airport.airports[dest]
+        self.location = self.airports[dest]
+        self.message = f"Saavut lentokentälle {self.location.name}"
+        self.flights = self.location.flights
+        print(f"Saavut lentokentälle {self.location.name}. ")
 
         if dest in self.goals and self.goals[dest].visited == False:
-            self.goals[dest].visited = True
-            self.message = self.message + f"Saavutit tavoitteen {self.goals[dest]}"
-            print(f"Saavutut tavoitteen {self.goals[dest].name}")
+            #self.goals[dest].visited = True ## Tämä on sama objekti kuin airports[dest]!!
+            self.message = self.message + f"Saavutit tavoitteen {self.goals[dest].name}. "
+            print(f"Saavutit tavoitteen {self.goals[dest].name}")
 
         if self.airports[dest].visited == False:
             self.airports[dest].visited = True
@@ -103,8 +123,8 @@ class Game:
             self.money = self.money + gain
             self.money_gained = self.money_gained + gain
             self.money_gained_total = self.money_gained_total +gain
-            print(f"Saat rahaa {gain}")
-            self.message = self.message +f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}"
+            print(f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}")
+            self.message = self.message +f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}. "
 
 
 
@@ -135,16 +155,17 @@ class Game:
 class Airport:
     airports = {}
 
-    def __init__(self, **kwargs):
+    def __init__(self, game, **kwargs):         #Ottaa game objektin ja tietokannan attribuutit
         for key, value in kwargs.items():
             setattr(self, key, value)
-        Airport.airports[self.icao] = self  #Lisätään luokkalistaan
-        self.flights = []                   #Lisätään lentolista attr
+        self.flights = []                       #Annetaan lentolista attr
+        game.airports[self.icao] = self         #Laittaa airport objektin game objektin airports dictiin
 
 
-    def create_flights(self): #Luo 3 lentoa lentokentältä.
+
+    def create_flights(self, game): #Luo 3 lentoa lentokentältä.
         flights_all = [] #Tehdään lennot kaikille muille kentille
-        for key, object in Airport.airports.items():
+        for key, object in game.airports.items():
             if object != self:
                 dist = int(distance.distance((self.lat, self.lon), (object.lat, object.lon)).km)
                 cost = dist #OLETUSKERROIN TÄHÄN JOS HALUTAAN VÄHÄPÄÄSTOISEN LENNON KERROIN = 0.3, HALVIN = 0.1
@@ -157,16 +178,16 @@ class Airport:
         for n in range (0,3):
             self.flights.append(flights_all[n])
 
-    def more_flights(self): #Luo paluulentoja lentokentiltä joilla ei plauuyhteyttä.
+    def more_flights(self, game): #Luo paluulentoja lentokentiltä joilla ei plauuyhteyttä.
         for dest in self.flights:                       #Jokaista määränpäätä kohden.
             #print(dest["icao"]),print(dest["name"])
             return_flight_exists = False
-            for dest_flight in Airport.airports[dest["icao"]].flights: #Jos määränpään lentolistassa on paluulento...
+            for dest_flight in game.airports[dest["icao"]].flights: #Jos määränpään lentolistassa on paluulento...
                 if dest_flight["icao"] == self.icao:
                     return_flight_exists = True
 
             if return_flight_exists == False: #Luodaan paluulento metodilla:
-                Airport.airports[dest["icao"]].create_1_flight(self)
+                game.airports[dest["icao"]].create_1_flight(self)
 
     def create_1_flight(self, object): #Luo self-objektille lennon argumentin objektiin.
         dist = int(distance.distance((self.lat, self.lon), (object.lat, object.lon)).km)
@@ -188,20 +209,7 @@ kursori = yhteys.cursor()
 
 ## Funktiot
 
-def create_airports():
-    sql1 = f"SELECT * FROM kentat"
-    kursori.execute(sql1)
-    vastaus = kursori.fetchall()
-    for kentta in vastaus:
-        kentta_kwargs = {"goal": False, "visited": False, "icao": kentta[1], "name": kentta[3], "country": kentta[18], "lat": kentta[4],"lon": kentta[5], "gdp": kentta[19]}
-        Airport(**kentta_kwargs)
-
-## Pääohjelman koodi: ?
-create_airports()                                  #Luodaan kentät
-for icao, object1 in Airport.airports.items():     #Luodaan alustavat lennot
-    object1.create_flights()
-for icao, object1 in Airport.airports.items():     #Luodaan paluulennot
-    object1.more_flights()
+## Pääohjelman koodi:
 
 #######################################################
 ## Tietorakenne ##
@@ -254,8 +262,8 @@ def server_newgame(nimi, difficulty):
     Game.games[Game.active_game].money = 2000
     Game.games[Game.active_game].start_money = 2000                            #Tämän pitää olla vaikeusasteen funktio
     #Game.games[Game.activeGame.name] = nimi                                    #Game.games dic sisältää kaikki pelit. Avaimena nimi.
-    Game.games[Game.active_game].start_and_goals()                                          #Antaa pelaajalle sijainnin ja tavoitteet
-    Game.games[Game.active_game].flights = Airport.airports[Game.games[Game.active_game].location.icao].flights  #Päivittää pelaajalle tarjolla olevat lennot.
+    Game.games[Game.active_game].start_and_goals()                                          #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
+
     #Tähän voi lisätä jokerilentofunktion
     print(Game.games[Game.active_game].goals)
     print(Game.games)
@@ -266,8 +274,9 @@ def server_newgame(nimi, difficulty):
 def server_input(flight_type, destination):
     destination = destination.upper()                                                   #ICAO koodit on isolla kirjaimella
     flight_type = flight_type.upper()                                                   #Lentoluokka SMALL/NORMAL/HIGH
-    Game.games[Game.active_game].fly(flight_type, destination)                                       #tekee lennon muutokset (lisää päästöjä, vähemmän rahaa, saapumispalkkio, )
-    Game.games[Game.active_game].flights = Airport.airports[Game.games[Game.active_game].location.icao].flights #Päivittää pelaajalle tarjolla olevat lennot.
+    Game.games[Game.active_game].fly(flight_type, destination)                          #tekee lennon muutokset (lisää päästöjä, vähemmän rahaa, saapumispalkkio, )
+    #Jatkossa fly metodi päivittää myös pelaajan lentolistan
+    #Game.games[Game.active_game].flights = Game.games[Game.active_game].airports[Game.games[Game.active_game].location.icao].flights #Päivittää pelaajalle tarjolla olevat lennot.
     #Tähän voi lisätä jokerilentofunktion
     Game.games[Game.active_game].goal_check()                        #TArkistaa onko pelaaja voittanut pelin. Palauttaa gamewon tai gameinprogress
     Game.games[Game.active_game].money_check()                       #Tarkistaa voiko pelaaja enää lentää. Palauttaa gameover tai gameinprogress kunhan peliä ei ole voitettu.
