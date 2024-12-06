@@ -22,6 +22,8 @@ class Game:
         for icao, object2 in Airport.airports.items():
             self.airports.append(object2.__dict__)
 
+        self.goals = []     #setattr ei alusta listaa oikein....
+
     #get_data palauttaa pelaajan tiedot dictionarynä   ##Tämä tehdään uusiksi site, että serveri varastoi tiedot dic mutta palauttaa listan
     #      lista = list(dict.values())
     def get_data (self):

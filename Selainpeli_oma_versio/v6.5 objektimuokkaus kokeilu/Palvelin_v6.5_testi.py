@@ -19,10 +19,12 @@ class Game:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        self.goals = {}
+        self.airports = {}
         for icao, object2 in Airport.airports.items():
             self.airports[icao] = object2
 
-        self.goals = {}
+
 
     #get_data palauttaa pelaajan tiedot dictionarynä   ##Tämä tehdään uusiksi site, että serveri varastoi tiedot dic mutta palauttaa listan
     #      lista = list(dict.values())
@@ -89,9 +91,10 @@ class Game:
         self.co2 = self.co2 + co2
         self.location = Airport.airports[dest]
 
-        if dest in self.goals:
+        if dest in self.goals and self.goals[dest].visited == False:
             self.goals[dest].visited = True
-            print("Saavutut tavoitteen")
+            self.message = self.message + f"Saavutit tavoitteen {self.goals[dest]}"
+            print(f"Saavutut tavoitteen {self.goals[dest]}")
 
         if self.airports[dest].visited == False:
             self.airports[dest].visited = True
@@ -100,8 +103,10 @@ class Game:
             self.money_gained = self.money_gained + gain
             self.money_gained_total = self.money_gained_total +gain
             print(f"Saat rahaa {gain}")
+            self.message = self.message +f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}"
 
-        self.message = f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}"
+
+
 
     def goal_check(self): #Tarkistaa onko peli voitettu. Muokkaa game_status arvon "gamewon"
         gamewon = True
