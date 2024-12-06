@@ -24,7 +24,7 @@ class Game:
         for icao, object1 in self.airports.items():  # Luodaan alustavat lennot
             object1.create_flights(self)
         for icao, object1 in self.airports.items():  # Luodaan paluulennot
-            object1.more_flights(self)
+            object1.return_flights(self)
 
         self.goals = {}
 
@@ -126,6 +126,22 @@ class Game:
             print(f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}")
             self.message = self.message +f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}. "
 
+    def bonus_flights(self): #Luo yhden satunnaisen lennon
+        old_dest = []
+        for flight in self.flights:
+            old_dest.append(flight["icao"])
+        print(old_dest)
+        random_icao = random.choice(list(self.airports.values())).icao
+        if random_icao not in old_dest:
+            new_dest = self.airports[random_icao]
+            dist = int(distance.distance((self.location.lat, self.location.lon), (new_dest.lat, new_dest.lon)).km)
+            cost = dist
+            co2 = dist
+            flight = {"name": new_dest.name, "country": new_dest.country, "icao": new_dest.icao, "cost": cost, "distance": dist,
+                      "co2": co2, "lat": new_dest.lat, "lon": new_dest.lon}
+            self.flights.append(flight)
+            print("Jokerilento:")
+            print(flight)
 
 
 
@@ -178,7 +194,7 @@ class Airport:
         for n in range (0,3):
             self.flights.append(flights_all[n])
 
-    def more_flights(self, game): #Luo paluulentoja lentokentiltä joilla ei plauuyhteyttä.
+    def return_flights(self, game): #Luo paluulentoja lentokentiltä joilla ei plauuyhteyttä.
         for dest in self.flights:                       #Jokaista määränpäätä kohden.
             #print(dest["icao"]),print(dest["name"])
             return_flight_exists = False
@@ -275,9 +291,7 @@ def server_input(flight_type, destination):
     destination = destination.upper()                                                   #ICAO koodit on isolla kirjaimella
     flight_type = flight_type.upper()                                                   #Lentoluokka SMALL/NORMAL/HIGH
     Game.games[Game.active_game].fly(flight_type, destination)                          #tekee lennon muutokset (lisää päästöjä, vähemmän rahaa, saapumispalkkio, )
-    #Jatkossa fly metodi päivittää myös pelaajan lentolistan
-    #Game.games[Game.active_game].flights = Game.games[Game.active_game].airports[Game.games[Game.active_game].location.icao].flights #Päivittää pelaajalle tarjolla olevat lennot.
-    #Tähän voi lisätä jokerilentofunktion
+    Game.games[Game.active_game].bonus_flights()                     #Lisätään lentoja pelaajan lentolistaan
     Game.games[Game.active_game].goal_check()                        #TArkistaa onko pelaaja voittanut pelin. Palauttaa gamewon tai gameinprogress
     Game.games[Game.active_game].money_check()                       #Tarkistaa voiko pelaaja enää lentää. Palauttaa gameover tai gameinprogress kunhan peliä ei ole voitettu.
 
