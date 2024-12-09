@@ -74,6 +74,21 @@ class Game:
 
         return return_data
 
+    def set_difficulty(self, difficulty): #helppo/normaali/vaikea 1000/1500/2000e
+        self.difficulty = difficulty
+        if difficulty == "helppo":
+            self.money = 2000
+            self.start_money = 2000
+        elif difficulty == "normaali":
+            self.money = 1500
+            self.start_money = 1500
+        elif difficulty == "vaikea":
+            self.money = 1000
+            self.start_money = 1000
+        else:
+            self.money = 500
+            self.start_money = 500
+
     def start_and_goals(self):   #asettaa pelaajalle aloituskentän ja tavoitteet
         icao3, object3 = random.choice(list(self.airports.items())) #Satunnaisen kentän tiedot sijainniksi
         self.location = object3 #Asetetaan sijainti
@@ -182,15 +197,17 @@ class Game:
             self.id = kursori.fetchall()[0][0]
             print("tallennetun pelin id:")
             print(self.id)
-            goal_sql = ""
-            for goal in self.goals
-                line = f"INSERT INTO goal VALUES '{self.id}','{goal.icao}','0' ;"
-                goal_sql = goal_sql + line
-            kursori.execute(goal_sql)
+            print("tallennetaan tavoitteet", self.goals )
+            goal_sql = f""
+            for goal in self.goals.values():
+                goal_sql = f"INSERT INTO goal(game_id,ident,reached) VALUES ('{self.id}','{goal.icao}', '0' )"
+                print(goal_sql)
+                kursori.execute(goal_sql)
+
             yhteys.commit()
 
 
-        else:
+        else: #Jos peli on jo syötetty
             save_sql = (f"UPDATE game "
                    f"SET game.location = '{self.location.icao}', game.money = '{self.money}', game.co2 = '{self.co2}' , game.money_gained = '{self.money_gained_total}', game.money_spent = '{self.money_spent_total}', "
                    f"game.distance = '{self.distance}', game.flights = '{self.flights_total}', game.difficulty = '{self.difficulty}', game.start_money = '{self.start_money}', game.status = '{self.game_status}'"
@@ -200,23 +217,19 @@ class Game:
             yhteys.commit()
 
             #visited_sql
-            visited_sql =""
-            for airport in self.airports
+            for airport in self.airports.values():
                 if airport.visited == True:
-                    line = f"INSERT INTO visited(game_id,ident) VALUES '{self.id}','{airport.icao}';"
-                    visited_sql = visited_sql + line
-            print(visited_sql)
-            kursori.execute(visited_sql)
+                    visited_sql = f"INSERT INTO visited(game_id,ident) VALUES ('{self.id}','{airport.icao}') ON DUPLICATE KEY ;"
+                print(visited_sql)
+                kursori.execute(visited_sql)
             yhteys.commit()
 
-
             #goal_sql
-            for goal in self.goals
+            for goal in self.goals.values():
                 if goal.visited == True:
-                    line = f"INSERT INTO goal VALUES '{self.id}','{goal.icao}', '1' "
-                    goal_sql = goal_sql + line
-            print(goal_sql)
-            kursori.execute(goal_sql)
+                    goal_sql = f"INSERT INTO goal(game_id,ident,reached) VALUES '{self.id}','{goal.values().icao}', '1' ON DUPLICATE KEY PASS"
+                print(goal_sql)
+                kursori.execute(goal_sql)
             yhteys.commit()
 
 
@@ -368,14 +381,13 @@ def server_loadgame(name):
 @app.route('/newgame/<nimi>/<difficulty>')
 def server_newgame(nimi, difficulty):
     #Alustaa uuden pelin. game_data muuttujat laitetaan oletusarvoihin ja lisätään pelaajan nimi:
-    new_game = Game(**game_data_default)                                                #Määritellään pelaaja Game luokkaan oletus attribuuteilla
-    Game.games[nimi] = new_game                                                      #Pelaajaoliota kutsutaan: Game.games[active_game] Olisi parempi laittaa vain Game.active_game...
-    Game.active_game = nimi                                                     #Laitetaan luokkamuuttuja osoittamaan uusimpaan peliin
+    new_game = Game(**game_data_default)                        #Määritellään pelaaja Game luokkaan oletus attribuuteilla
+    Game.games[nimi] = new_game                                 #Pelaajaoliota kutsutaan: Game.games[active_game] Olisi parempi laittaa vain Game.active_game...
+    Game.active_game = nimi                                    #Laitetaan luokkamuuttuja osoittamaan uusimpaan peliin
     Game.games[Game.active_game].name = nimi
-    Game.games[Game.active_game].difficulty = difficulty
-    Game.games[Game.active_game].money = 2000
-    Game.games[Game.active_game].start_money = 2000                            #Tämän pitää olla vaikeusasteen funktio
-    Game.games[Game.active_game].start_and_goals()                              #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
+
+    Game.games[Game.active_game].set_difficulty(difficulty)             #Asettaa aloitusrahat ja vaikeusasteen
+    Game.games[Game.active_game].start_and_goals()                      #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
     Game.games[Game.active_game].bonus_flights()
     #Tähän voi lisätä jokerilentofunktion
     print(Game.games[Game.active_game].goals)
