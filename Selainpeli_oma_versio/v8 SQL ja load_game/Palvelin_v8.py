@@ -170,18 +170,54 @@ class Game:
                 self.message = "Sinulla ei ole varaa lentää. Hävisit pelin!"
 
     def save_game(self): #Tallentaa pelin tiedot tietokantaan
-        sql = (f"UPDATE game "
-               f"SET game.location = '{self.location}', game.money = '{game_money}', game.co2 = '{game_co2}' , game.money_gained = '{game_money_gained}', game.money_spent = '{game_money_spent}', "
-               f"game.distance = '{game_distance}', game.flights = '{game_flights}' WHERE game.id = '{game_id}' ")
+
+        if self.id == "default": #jos peliä ei vielä syötetty:
+            newgame_sql = (f"INSERT INTO game(name, location, money, co2, money_gained, money_spent, distance, flights, difficulty,start_money,status) "
+                        f"VALUES( '{self.name}','{self.location.icao}','{self.money}','{self.co2}','{self.money_gained_total}','{self.money_spent_total}','{self.distance}','{self.flights_total}','{self.difficulty}','{self.start_money}','{self.game_status}')")
+            print(newgame_sql)
+            kursori.execute(newgame_sql)
+            yhteys.commit()
+            id_sql = f"SELECT id FROM game WHERE name = '{self.name}'"
+            kursori.execute(id_sql)
+            self.id = kursori.fetchall()[0][0]
+            print("tallennetun pelin id:")
+            print(self.id)
+            goal_sql = ""
+            for goal in self.goals
+                line = f"INSERT INTO goal VALUES '{self.id}','{goal.icao}','0' ;"
+                goal_sql = goal_sql + line
+            kursori.execute(goal_sql)
+            yhteys.commit()
 
 
+        else:
+            save_sql = (f"UPDATE game "
+                   f"SET game.location = '{self.location.icao}', game.money = '{self.money}', game.co2 = '{self.co2}' , game.money_gained = '{self.money_gained_total}', game.money_spent = '{self.money_spent_total}', "
+                   f"game.distance = '{self.distance}', game.flights = '{self.flights_total}', game.difficulty = '{self.difficulty}', game.start_money = '{self.start_money}', game.status = '{self.game_status}'"
+                   f" WHERE game.id ='{self.id}'")
+            print(save_sql)
+            kursori.execute(save_sql)
+            yhteys.commit()
+
+            #visited_sql
+            visited_sql =""
+            for airport in self.airports
+                if airport.visited == True:
+                    line = f"INSERT INTO visited(game_id,ident) VALUES '{self.id}','{airport.icao}';"
+                    visited_sql = visited_sql + line
+            print(visited_sql)
+            kursori.execute(visited_sql)
+            yhteys.commit()
 
 
-
-        kursori.execute(sql)
-        yhteys.commit()
-
-
+            #goal_sql
+            for goal in self.goals
+                if goal.visited == True:
+                    line = f"INSERT INTO goal VALUES '{self.id}','{goal.icao}', '1' "
+                    goal_sql = goal_sql + line
+            print(goal_sql)
+            kursori.execute(goal_sql)
+            yhteys.commit()
 
 
 ############################################################
@@ -235,6 +271,7 @@ class Airport:
 ## Tietorakenne ##
 #Pelaajan aloitusarvot ilman satunnaistamista:
 game_data_default = {
+        "id":"default",
         "game_status": "gameinprogress",
         "message": "default",
         "debugmessage": "default, ",
@@ -361,7 +398,7 @@ def server_input(flight_type, destination):
 
 @app.route('/gamelist')
 def server_gamelist(): #Palauttaa listan Game luokan objektien nimistä. Objektit luodaan tietokantaan tallennetuista peleistä.
-    return json.dumps(list(Game.games.keys()))
+    return json.dumps(list(Game.games.keys()))  ## Tähän
 
 if True:
     app.run(host='127.0.0.1', port=3000) # use_reloader=True pois toistaiseksi
