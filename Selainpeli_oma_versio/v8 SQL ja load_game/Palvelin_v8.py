@@ -40,7 +40,7 @@ class Game:
         vastaus = kursori.fetchall()
         for kentta in vastaus:
             kentta_kwargs = {"goal": False, "visited": False, "icao": kentta[1], "name": kentta[3],
-                             "country": kentta[18], "lat": kentta[4], "lon": kentta[5], "gdp": kentta[19]}
+                             "country": kentta[18], "lat": kentta[4], "lon": kentta[5], "gdp": kentta[19], "db_saved": False}
             Airport(self, **kentta_kwargs)
 
 
@@ -140,7 +140,7 @@ class Game:
             self.airports[dest].visited = True
             gain = int(self.airports[dest].gdp * 2 ) # Rahaa saa 2*gdp. Arvon muuttaminen vaikuttaa vaikeusasteeseen.
             self.money = self.money + gain
-            self.money_gained = self.money_gained + gain
+            self.money_gained = gain
             self.money_gained_total = self.money_gained_total +gain
             print(f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}")
             self.message = self.message +f"Saavut lentokentälle {self.location.name}, saat rahaa {gain}. "
@@ -218,18 +218,19 @@ class Game:
 
             #visited_sql
             for airport in self.airports.values():
-                if airport.visited == True:
-                    visited_sql = f"INSERT INTO visited(game_id,ident) VALUES ('{self.id}','{airport.icao}') ON DUPLICATE KEY ;"
-                print(visited_sql)
-                kursori.execute(visited_sql)
+                if airport.visited == True and airport.db_saved == False:
+                    visited_sql = f"INSERT INTO visited(game_id, ident) VALUES ('{self.id}','{airport.icao}');"
+                    print(visited_sql)
+                    kursori.execute(visited_sql)
+                    airport.db_saved = True
             yhteys.commit()
 
             #goal_sql
             for goal in self.goals.values():
-                if goal.visited == True:
-                    goal_sql = f"INSERT INTO goal(game_id,ident,reached) VALUES '{self.id}','{goal.values().icao}', '1' ON DUPLICATE KEY PASS"
-                print(goal_sql)
-                kursori.execute(goal_sql)
+                if goal.visited == True:  # vanha: INSERT INTO goal(game_id,ident,reached) VALUES '{self.id}','{goal.values().icao}', '1' ON DUPLICATE KEY
+                    goal_sql = f"UPDATE goal SET goal.reached = '1' WHERE goal.game_id = '{self.id}' AND goal.ident = '{goal.icao}' ;"
+                    print(goal_sql)
+                    kursori.execute(goal_sql)
             yhteys.commit()
 
 
@@ -333,7 +334,7 @@ game_vastaus = kursori2.fetchall()
 for rivi in game_vastaus:
     loaded_game = Game(**game_data_default) #Luokkaan oletus attr
 
-    loaded_game.status = rivi["status"]
+    loaded_game.game_status = rivi["status"]
     loaded_game.message = rivi["message"]
     loaded_game.debugmessage = rivi["debugmessage"]
     loaded_game.name= rivi["name"]
@@ -386,14 +387,13 @@ def server_newgame(nimi, difficulty):
     Game.active_game = nimi                                    #Laitetaan luokkamuuttuja osoittamaan uusimpaan peliin
     Game.games[Game.active_game].name = nimi
 
-    Game.games[Game.active_game].set_difficulty(difficulty)             #Asettaa aloitusrahat ja vaikeusasteen
-    Game.games[Game.active_game].start_and_goals()                      #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
-    Game.games[Game.active_game].bonus_flights()
-    #Tähän voi lisätä jokerilentofunktion
+    Game.games[Game.active_game].set_difficulty(difficulty)         #Asettaa aloitusrahat ja vaikeusasteen
+    Game.games[Game.active_game].start_and_goals()                  #Antaa pelaajalle sijainnin ja tavoitteet ja lennot
+    Game.games[Game.active_game].bonus_flights()                    #Antaa pelaajalla ylimääräisen lennon jonnekin
     print(Game.games[Game.active_game].goals)
     print(Game.games)
-    Game.games[Game.active_game].save_game()                                    #Tallentaa tietokantaan
-    return json.dumps(Game.games[Game.active_game].get_data())                   #haetaan pelin tilanne game.get_data()
+    #Game.games[Game.active_game].save_game()                       #Tallentaa tietokantaan. Poistetaan käytöstä newgamessa toistaiseksi
+    return json.dumps(Game.games[Game.active_game].get_data())      #haetaan pelin tilanne game.get_data()
 
 
 @app.route('/<flight_type>/<destination>')
@@ -404,7 +404,7 @@ def server_input(flight_type, destination):
     Game.games[Game.active_game].bonus_flights()                     #Lisätään lentoja pelaajan lentolistaan
     Game.games[Game.active_game].goal_check()                        #TArkistaa onko pelaaja voittanut pelin. Palauttaa gamewon tai gameinprogress
     Game.games[Game.active_game].money_check()                       #Tarkistaa voiko pelaaja enää lentää. Palauttaa gameover tai gameinprogress kunhan peliä ei ole voitettu.
-    Game.games[Game.active_game].save_game()                          #Tallentaa tietokantaan
+    Game.games[Game.active_game].save_game()                         #Tallentaa tietokantaan
     return json.dumps(Game.games[Game.active_game].get_data())       #haetaan pelin tilanne game.get_data()
 
 
