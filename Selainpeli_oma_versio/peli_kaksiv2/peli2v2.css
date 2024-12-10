@@ -7,49 +7,6 @@ body {
   color: #2e4057;
 }
 
-#name-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.name-dialog {
-  background: white;
-  padding: 2rem;
-  border-radius: 15px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.name-dialog input {
-  padding: 0.8rem;
-  width: 80%;
-  margin: 1rem 0;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 2px solid #99d1ff;
-}
-
-.name-dialog button {
-  padding: 0.8rem 1.2rem;
-  font-size: 1rem;
-  background-color: #f6e58d;
-  border: none;
-  border-radius: 15px;
-  cursor: pointer;
-}
-
-.name-dialog button:hover {
-  background-color: #ffbe76;
-}
-
 .container {
   display: flex;
   flex-direction: column;
@@ -201,4 +158,55 @@ body {
 .footer button:hover {
   background-color: #ffbe76;
   transform: scale(1.1);
+}
+/* Lentokenttävalintadialogin tyyli */
+.flight-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  z-index: 10000; /* Varmistaa, että dialogi on muiden elementtien päällä */
+  width: 300px;
+  text-align: center;
+}
+
+.flight-dialog h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.flight-dialog button {
+  margin: 10px 0;
+  padding: 12px;
+  background-color: #f6e58d;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.flight-dialog button:hover {
+  background-color: #ffbe76;
+  transform: scale(1.05);
+}
+
+.flight-dialog .close-btn {
+  padding: 10px;
+  background-color: #ff6262;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: white;
+  margin-top: 20px;
+  transition: background-color 0.3s;
+}
+
+.flight-dialog .close-btn:hover {
+  background-color: #e55b5b;
 }

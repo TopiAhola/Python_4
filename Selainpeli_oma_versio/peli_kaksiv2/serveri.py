@@ -84,7 +84,6 @@ class Game:
         else:
             self.money = 500
             self.start_money = 500
-        print("Vaikeusaste, aloitusrahat:", self.difficulty, self.start_money)
 
     def start_and_goals(self):   #Asettaa pelaajalle aloituskentän, sijainnin ja tavoitteet
         icao3, object3 = random.choice(list(self.airports.items())) #Satunnaisen kentän tiedot sijainniksi
@@ -154,7 +153,7 @@ class Game:
             cost = dist
             co2 = dist
             flight = {"name": new_dest.name, "country": new_dest.country, "icao": new_dest.icao, "cost": cost, "distance": dist,
-                      "co2": co2, "lat": new_dest.lat, "lon": new_dest.lon, "bonus_flight": True }
+                      "co2": co2, "lat": new_dest.lat, "lon": new_dest.lon}
             self.flights.append(flight)
             print("Jokerilento:",flight)
 
@@ -192,21 +191,14 @@ class Game:
             print("tallennetun pelin id:")
             print(self.id)
             print("tallennetaan tavoitteet", self.goals )
-
+            goal_sql = f""
             for goal in self.goals.values():
                 goal_sql = f"INSERT INTO goal(game_id,ident,reached) VALUES ('{self.id}','{goal.icao}', '0' )"
                 print(goal_sql)
                 kursori.execute(goal_sql)
+
             yhteys.commit()
 
-            #Pelaajan aloituskenttä merkitään käydyksi:
-            for airport in self.airports.values():
-                if airport.visited == True:
-                    visited_sql = f"INSERT INTO visited(game_id, ident) VALUES ('{self.id}','{airport.icao}');"
-                    print(visited_sql)
-                    kursori.execute(visited_sql)
-                    airport.db_saved = True
-            yhteys.commit()
 
         else: #Jos peli on jo syötetty
             save_sql = (f"UPDATE game "
@@ -218,16 +210,8 @@ class Game:
             yhteys.commit()
 
             #visited_sql
-            db_visited_list = []
-            get_visited_sql = f"SELECT ident FROM visited WHERE game_id = '{self.id}'"
-            kursori.execute(get_visited_sql)
-            db_visited = kursori.fetchall()
-            for ident in db_visited:
-                db_visited_list.append(ident[0])
-                print("Käyty kentällä:", ident[0])
-
             for airport in self.airports.values():
-                if airport.visited == True and airport.icao not in db_visited_list:
+                if airport.visited == True and airport.db_saved == False:
                     visited_sql = f"INSERT INTO visited(game_id, ident) VALUES ('{self.id}','{airport.icao}');"
                     print(visited_sql)
                     kursori.execute(visited_sql)
@@ -263,7 +247,7 @@ class Airport:
                 dist = int(distance.distance((self.lat, self.lon), (object.lat, object.lon)).km)
                 cost = dist #OLETUSKERROIN TÄHÄN JOS HALUTAAN VÄHÄPÄÄSTOISEN LENNON KERROIN = 0.3, HALVIN = 0.1
                 co2 = dist #OLETUSKERROIN TÄHÄN JOS HALUTAAN VÄHÄPÄÄSTOISEN LENNON KERROIN = 0.1
-                flight =  {"name": object.name, "country": object.country, "icao": object.icao, "cost": cost, "distance": dist, "co2": co2,"lat": object.lat, "lon": object.lon, "bonus_flight":False}
+                flight =  {"name": object.name, "country": object.country, "icao": object.icao, "cost": cost, "distance": dist, "co2": co2,"lat": object.lat, "lon": object.lon}
                 flights_all.append(flight)
                 #print(flight)
         #Järjestetään lennot etäisyyden mukaan ja syötetään 3 lähintä:
@@ -324,7 +308,7 @@ game_data_default = {
 ## Pääohjelma ##
 
 ## Tietokanta
-parametrit = {"host": 'localhost', 'database': 'flight_game', 'user': 'game', 'password': '',"collation": "latin1_swedish_ci"}
+parametrit = {"host": 'localhost', 'database': 'flight_game_one', 'user': 'mikael', 'password': '6499',"collation": "latin1_swedish_ci"}
 yhteys = mysql.connector.connect(**parametrit)
 kursori = yhteys.cursor()
 
@@ -420,6 +404,4 @@ def server_gamelist(): #Palauttaa listan Game luokan objektien tiedoista. Avain 
     return json.dumps(gamelist)
 
 if True:
-    app.run(host='127.0.0.1', port=3000) # use_reloader=True pois toistaiseksi
-
-
+    app.run(host='127.0.0.1', port=5000) # use_reloader=True pois toistaiseksi
