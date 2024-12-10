@@ -191,14 +191,21 @@ class Game:
             print("tallennetun pelin id:")
             print(self.id)
             print("tallennetaan tavoitteet", self.goals )
-            goal_sql = f""
+
             for goal in self.goals.values():
                 goal_sql = f"INSERT INTO goal(game_id,ident,reached) VALUES ('{self.id}','{goal.icao}', '0' )"
                 print(goal_sql)
                 kursori.execute(goal_sql)
-
             yhteys.commit()
 
+            #Pelaajan aloituskenttä merkitään käydyksi:
+            for airport in self.airports.values():
+                if airport.visited == True:
+                    visited_sql = f"INSERT INTO visited(game_id, ident) VALUES ('{self.id}','{airport.icao}');"
+                    print(visited_sql)
+                    kursori.execute(visited_sql)
+                    airport.db_saved = True
+            yhteys.commit()
 
         else: #Jos peli on jo syötetty
             save_sql = (f"UPDATE game "
@@ -210,8 +217,16 @@ class Game:
             yhteys.commit()
 
             #visited_sql
+            db_visited_list = []
+            get_visited_sql = f"SELECT ident FROM visited WHERE game_id = '{self.id}'"
+            kursori.execute(get_visited_sql)
+            db_visited = kursori.fetchall()
+            for ident in db_visited:
+                db_visited_list.append(ident[0])
+                print("Käyty kentällä:", ident[0])
+
             for airport in self.airports.values():
-                if airport.visited == True and airport.db_saved == False:
+                if airport.visited == True and airport.icao not in db_visited_list:
                     visited_sql = f"INSERT INTO visited(game_id, ident) VALUES ('{self.id}','{airport.icao}');"
                     print(visited_sql)
                     kursori.execute(visited_sql)

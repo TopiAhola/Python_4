@@ -45,9 +45,26 @@ async function play_game() {
   console.log(query)
   try {
     let vastaus2 = await fetch(query);
+    console.log(vastaus2)
     let vastaus2_json = await vastaus2.json();
     console.log(vastaus2_json)
+    console.log(vastaus2_json["location"]["name"]);
+
+
     document.getElementById("tuloste").innerText = vastaus2_json;
+    document.getElementById("location").innerText = vastaus2_json["location"]["name"];
+
+    document.getElementById("flights").innerText = vastaus2_json["flights"];
+    document.getElementById("goals").innerText = vastaus2_json["goals"];
+
+
+    let visited_array = [];
+    for (let airport of vastaus2_json.airports) {
+      if (airport.visited == true) {visited_array.push(airport.name) }
+    }
+
+    document.getElementById("visited").innerText = visited_array;
+
   }
   catch (error) {
     console.log(error.message);
