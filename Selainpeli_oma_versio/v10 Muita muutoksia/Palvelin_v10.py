@@ -286,7 +286,7 @@ class Airport:
         dist = int(distance.distance((self.lat, self.lon), (object.lat, object.lon)).km)
         cost = dist
         co2 = dist
-        flight = {"name": object.name, "country": object.country, "icao": object.icao, "cost": cost, "distance": dist,"co2": co2, "lat": object.lat, "lon": object.lon}
+        flight = {"name": object.name, "country": object.country, "icao": object.icao, "cost": cost, "distance": dist,"co2": co2, "lat": object.lat, "lon": object.lon,"bonus_flight":False}
         self.flights.append(flight)
         # print(flight)
 
