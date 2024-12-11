@@ -1,0 +1,17 @@
+
+
+
+
+
+Itse, seuraavaksi:
+-Funktio pelaajan tietojen päivittämiseksi sivulla.
+
+
+
+
+
+
+
+Yleisesti
+(-jonkinlainen päivitysfunkti joka näyttää pelin tilanteen tietorakenteen perusteella. Ajetaan newgame, playgame, loadgamen jälkeen.)
+

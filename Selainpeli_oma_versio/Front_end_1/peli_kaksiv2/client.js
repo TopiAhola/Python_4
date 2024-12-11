@@ -48,21 +48,22 @@ async function play_game() {
     console.log(vastaus2)
     let vastaus2_json = await vastaus2.json();
     console.log(vastaus2_json)
-    console.log("Pelaajan sijainti: ",vastaus2_json["location"]["name"]);
-    game_location = `Pelaajan sijainti: ${vastaus2_json["location"]["name"]}`;
+    console.log(vastaus2_json["location"]["name"]);
+
 
     document.getElementById("tuloste").innerText = vastaus2_json;
+    document.getElementById("location").innerText = vastaus2_json["location"]["name"];
 
+    document.getElementById("flights").innerText = vastaus2_json["flights"];
+    document.getElementById("goals").innerText = vastaus2_json["goals"];
 
-    //document.getElementById("flights").innerText = vastaus2_json["flights"];
-    //document.getElementById("goals").innerText = vastaus2_json["goals"];
 
     let visited_array = [];
     for (let airport of vastaus2_json.airports) {
       if (airport.visited == true) {visited_array.push(airport.name) }
     }
-    console.log(visited_array)
-    //document.getElementById("visited").innerText = visited_array;
+
+    document.getElementById("visited").innerText = visited_array;
 
   }
   catch (error) {
@@ -103,12 +104,3 @@ async function game_list() {
       console.log(error.message);
     }
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// Globaalit muuttujat:
-let text_location = document.getElementById("location").innerText
-let text_goals = document.getElementById("goals").innerText
-let text_flights = document.getElementById("location").innerText
-
-
-

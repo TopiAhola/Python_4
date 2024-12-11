@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eurooppalainen turisti - Tervetuloa!</title>
+  <link rel="stylesheet" href="tervetuloa.css">
+  <script src="client.js" defer></script>
+  <script src="index.js" defer></script>
+</head>
+
+<body>
+  <div id="welcome-screen">
+    <div id="welcome-content">
+      <h1>Tervetuloa Eurooppalainen turisti peliin!</h1>
+      <p>Tässä pelissä sinä olet turisti, joka seikkailee viidessä eri Euroopan maassa. Tavoitteesi on päästä kaikkiin
+        viiteen maahan. Aloitat seikkailusi yhdestä Euroopan maasta ja saat 1500 € sponsorirahaa matkallesi. Valitse
+        yksi kolmesta lähimmistä lentokentästä ja tee valintoja, jotka vaikuttavat päästöihisi ja kuluihisi.</p>
+      <p>Kun saavut uuteen maahan saat palkkion kunniaosoituksena. Kunniaosoituksen määrä riippuu kunkin valtion
+        varallisuudesta (maan BKT).</p>
+      <h3>Lentojen hinnat ja päästöt:</h3>
+      <ul>
+        <li><strong>Vähänpäästöinen luokka:</strong> Päästöt: 100 g CO2 per kilometri, Hinta: 0,3 € per kilometri</li>
+        <li><strong>Keskipäästöinen luokka:</strong> Päästöt: 200 g CO2 per kilometri, Hinta: 0,2 € per kilometri</li>
+        <li><strong>Suurpäästöinen luokka:</strong> Päästöt: 300 g CO2 per kilometri, Hinta: 0,1 € per kilometri</li>
+      </ul>
+      <p>Pelin tavoitteena on käydä kaikissa viidessä maassa mahdollisimman pienillä päästöillä. Mikäli rahasi loppuvat,
+        peli päättyy.</p>
+
+      <h2>Pelin valinta</h2>
+      <input id="nimi" name="q" type="text" placeholder="Pelaajan nimi">
+      <select id="vaikeus" name="q" type="text" placeholder="vaikeusaste">
+        <option value="helppo">Helppo</option>
+        <option value="normaali">Keskitaso</option>
+        <option value="vaikee">Vaikea</option>
+      </select>
+
+      <button type="submit" id="start-button">Aloita peli</button>
+      <button id="load-button">Tallennetut pelit</button>
+
+      <!-- Peli tallennus modaali -->
+      <div id="myModal" class="modal">
+
+        <!-- Modal kontsaa -->
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h1>Tallennetut pelit</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
