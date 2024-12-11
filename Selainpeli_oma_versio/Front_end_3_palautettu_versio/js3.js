@@ -62,6 +62,24 @@ async function fetchList() {
 
 /* Uusi peli */
 async function newGame() {
+  // Nollataan karttamerkit
+  map.eachLayer((layer) => {
+    if (layer instanceof L.CircleMarker) {
+      map.removeLayer(layer);
+    }
+  });
+
+  // Nollataan pelaajan tiedot
+  playerData = {
+    name: "",
+    budget: 1500,
+    emissions: 0,
+    visitedAirports: 0,
+    currentAirport: [50.23, 13.74],
+    visitedCoordinates: [],
+    currentAirportName: "Praha",
+  };
+
   const name = document.getElementById("nimi").value;
   const difficulty = document.getElementById("vaikeus").value;
   const vastaus1 = await fetch(
@@ -69,8 +87,6 @@ async function newGame() {
   );
   const vastaus1_json = await vastaus1.json();
   console.log(vastaus1_json);
-
-
 
   const screen = document.getElementById("welcome-screen");
   screen.style.display = "none";
@@ -85,6 +101,7 @@ async function loadList() {
   console.log(games);
 
   const target = document.getElementById("myModal");
+  target.innerHTML = ""
 
   for (let i = 0; i < games.length; i++) {
     var gamer_tag = i;
@@ -131,7 +148,7 @@ async function loadGame(gamer_tag) {
     if (location == lentokentta) {
       markerColor = "blue";
     } else if (visited == true) {
-      markerColor = "grey";
+      markerColor = "grey";  // Kenttä on käyty, niin väri harmaaksi
     }
 
     for (let j = 0; j < games[gamer_tag].flights.length; j++) {
@@ -153,35 +170,33 @@ async function loadGame(gamer_tag) {
     }
 
     // Lisää markkerit
-    if (lentoBoolean == true) {
-      L.circleMarker(coords, {
-        color: markerColor, // Väri
-        radius: 6, // Pisteen koko
-        weight: 2, // Reunan paksuus
-        opacity: 1, // Täytteen läpinäkyvyys
-        fillOpacity: 1, // Täytteen läpinäkyvyys
-      }).addTo(map).bindPopup(`
-    <b>${games[gamer_tag].airports[i].name}</b><br>
-    <button onclick="showFlightDialog('${
-      games[gamer_tag].airports[i].name
-    }', ${JSON.stringify(coords)}, '${games[gamer_tag].airports[i].icao}')">
-      Valitse tämä lentokenttä
-    </button>
-  `);
-    } else {
-      L.circleMarker(coords, {
-        color: markerColor, // Väri
-        radius: 6, // Pisteen koko
-        weight: 2, // Reunan paksuus
-        opacity: 1, // Täytteen läpinäkyvyys
-        fillOpacity: 1, // Täytteen läpinäkyvyys
-      })
-        .addTo(map)
-        .bindPopup(`<b>${games[gamer_tag].airports[i].name}</b>`);
+    const marker = L.circleMarker(coords, {
+      color: markerColor, // Väri
+      radius: 6, // Pisteen koko
+      weight: 2, // Reunan paksuus
+      opacity: 1, // Täytteen läpinäkyvyys
+      fillOpacity: 1, // Täytteen läpinäkyvyys
+    }).addTo(map).bindPopup(`    
+      <b>${games[gamer_tag].airports[i].name}</b><br>
+      <button onclick="showFlightDialog('${
+        games[gamer_tag].airports[i].name
+      }', ${JSON.stringify(coords)}, '${games[gamer_tag].airports[i].icao}')">
+        Valitse tämä lentokenttä
+      </button>
+    `);
+
+    // Jos kenttä on käyty, lisää CSS-luokka
+    if (visited) {
+      marker.getElement().classList.add("visited");
+    }
+
+    if (!lentoBoolean) {
+      marker.bindPopup(`<b>${games[gamer_tag].airports[i].name}</b>`);
     }
   }
   update_player_info(gamer_tag);
 }
+
 
 /* Pelaaminen */
 async function playGame(flight_type, destination) {
@@ -299,11 +314,19 @@ function confirmFlight(airportName, airportCoords, flightType, airportIcao) {
   playerData.currentAirport = airportCoords;
   playerData.currentAirportName = airportName; // Päivitetään lentokentän nimi
 
+  // Merkitään kenttä käydyksi
+  for (let airport of games[gamer_tag].airports) {
+    if (airport.name === airportName) {
+      airport.visited = true;
+    }
+  }
+
   updatePlayerInfo();
   fetchWeather(playerData.currentAirport, updateWeatherInfo); // Päivitä säätiedot kenttämuutoksen jälkeen
   closeDialog();
   checkGameStatus();
 }
+
 
 // *** Pelaajatietojen päivitys ***
 function updatePlayerInfo() {
@@ -343,7 +366,10 @@ function toRad(value) {
 
 // *** Pelin tilan tarkastus ***
 function checkGameStatus() {
-  if (playerData.visitedAirports >= 5) {
+  const goalAirports = games[gamer_tag].airports.filter((airport) => airport.goal);
+  const visitedGoals = goalAirports.every((airport) => airport.visited);
+
+  if (visitedGoals) {
     alert("Onneksi olkoon! Olet voittanut pelin!");
     location.reload();
   } else if (playerData.budget <= 0) {
