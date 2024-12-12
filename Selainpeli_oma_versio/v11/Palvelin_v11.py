@@ -417,10 +417,10 @@ def server_input(flight_type, destination):
 
 @app.route('/gamelist')
 def server_gamelist(): #Palauttaa listan Game luokan objektien tiedoista. Avain on pelaajan nimi. #Muutetaan ARRAYKSI!!
-    print("Palautetaan peli lista")
-    gamelist = []
+    print("Palautetaan peli lista")  #versio 11 palauttaa dict....
+    gamelist = {}
     for key, object in Game.games.items():
-        gamelist.append(object.get_data())
+        gamelist[key] = object.get_data()
     return json.dumps(gamelist)
 
 if True:
