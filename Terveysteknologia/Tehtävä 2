@@ -1,0 +1,52 @@
+Write a Python code that  - - -
+analyses the given signal (based on your student ID) and find the peaks
+plots the detected peaks, and
+prints out the HRV analysis parameters.
+
+HRV parametrit: #VÄÄRÄT
+-Mean IBI = mean inter beat interval
+-Mean heart rate
+-Standard deviation of IBI
+-Standard deviation of successive interval differences (SDSD)
+-Root mean square of successive differences (RMSSD)
+-Baevsky's stress index (SI)
+--Frequency-domain HRV parameters
+--Nonlinear HRV parameters: Poincare plot
+
+#OIKEAT:
+-Mean IBI = mean inter beat interval
+-Mean heart rate
+-Standard deviation of IBI
+-Root mean square of successive differences (RMSSD)
+
+
+
+Finally, interpret the analysis results:
+1. Was the average heart rate low or high?
+2. Was the average ppi (peak-to-peak interval in milliseconds) low or high?
+3. How much variation was there in the ppi values (standard deviation and root-mean-square
+value of successive intervals?
+4. Was the variation low or high?
+5. Compare these values to the given standard values (see the lecture notes) and interpret the
+recovery and/or stress level of the patient.
+
+
+
+
+Apuja:
+
+ppi = np.diff(peaks)*ts*1000 #peak_to_peak_interval in milliseconds mitä tämä tekee??
+
+diff_ppi = np.diff(ppi)  #tekee listan datapisteiden erotuksista?
+mean_ppi = np.mean(ppi) keskiarvo ppi listan arvoista?
+std_ppi = np.std(ppi)   keskihajonta ppin arvoista?
+
+peaks, properties = find_peaks(ppg) #palauttaa huippuarvot ja ominaisuudet(ominaisuuksia ei tarvita)
+plt on kuvaajan nimi?
+plt.plot(t, ppg) #piirtää kuvaajan aika-ppg akseleilla.
+plt.plot(t[peaks], ppg[peaks], 'o') # 'o'-parametri piiträä ympyrän huipun kohdalle
+plt.xlim(30,60) #rajaa x-akselin välille 30-60
+
+#Select ppi between 600 & 800:
+i = (ppi>600) & (ppi<800)
+ppi = ppi[i]
