@@ -13,8 +13,5 @@ string_2 = 6
 luku_2 = hex(string_2)
 print(luku_2)
 
-numpy
-matplotlib
-pandas
-scipy
-import pandas
+print(ord("A"))
+print(bin(1023))
