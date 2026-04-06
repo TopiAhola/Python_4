@@ -123,11 +123,70 @@ class SinglyLinkedList():
         self._size += 1
 
     def remove(self, index):
-
+        #limit index to size
         if index < 0 or index > self._size:
             raise(ValueError('Index out of bounds'))
 
-        #if remove head
+        else:
+
+            #start from head, iterate until index found
+            previous_node = None
+            current_node = self._head
+            next_node = self._head.next
+            searchIndex = 0
+
+            while searchIndex < index:
+                previous_node = current_node
+                current_node = current_node.next
+                next_node = current_node.next
+                searchIndex += 1
+
+            #assert index is correct
+            assert searchIndex == index
+
+            #set tail to next or None
+            if current_node == self._tail:
+                self._tail = previous_node
+
+            #set head to next or None
+            if current_node == self._head:
+                self._head = next_node
+
+            #set pointer between prev and next nodes or None
+            # NOTE: None return value from previous_node.next is ok but assigning to None is not
+            if previous_node is not None:
+                previous_node.next = next_node
+
+            #get data, delete current node
+            returnData = current_node.data
+            del current_node
+            self._size -= 1
+            return returnData
+
+
+
+#main
+mylist = SinglyLinkedList()
+
+for i in range(1, 6):
+    mylist.append(i*10)
+
+val = mylist.remove(2)
+print(val, mylist)
+
+mylist = SinglyLinkedList()
+
+for i in range(1, 6):
+    mylist.append(i*10)
+
+val = mylist.remove(0)
+print(val, mylist)
+
+
+
+
+""" 
+   #if remove head
         if index == 0:
             returnData = self._head.data
             next_node = self._head.next
@@ -156,41 +215,4 @@ class SinglyLinkedList():
             self._size -= 1
 
             return returnData
-
-        #else
-        else:
-            #start from head, iterate until index found
-            previous_node = None
-            current_node = self._head
-            next_node = self._head.next
-            searchIndex = 0
-
-            while searchIndex < index:
-                previous_node = current_node
-                current_node = current_node.next
-                next_node = current_node.next
-                searchIndex += 1
-
-            #assert all nodes exist
-            assert searchIndex == index
-            assert current_node is not None and previous_node is not None and next_node is not None
-
-            #set pointer between prev and next nodes
-            previous_node.next = next_node
-
-            #get data, delete current node
-            returnData = current_node.data
-            del current_node
-            self._size -= 1
-            return returnData
-
-
-
-#main
-mylist = SinglyLinkedList()
-
-for i in range(1, 6):
-    mylist.append(i*10)
-
-val = mylist.remove(2)
-print(val, mylist)
+"""
