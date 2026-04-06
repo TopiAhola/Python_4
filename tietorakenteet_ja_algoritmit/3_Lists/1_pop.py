@@ -68,7 +68,6 @@ class SinglyLinkedList():
 
 
 #main
-
 list = SinglyLinkedList()
 for i in 'abc':
     list.append(i)
