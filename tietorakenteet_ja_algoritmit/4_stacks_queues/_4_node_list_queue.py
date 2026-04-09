@@ -83,15 +83,18 @@ class Queue:
  '''
 
 #main
-queue = Queue()
-queue.enqueue('A')
-queue.enqueue('B')
-print(queue)
+if __name__ == '__main__':
+    queue = Queue()
+    queue.enqueue('A')
+    queue = Queue()
+    queue.enqueue('A')
+    queue.enqueue('B')
+    print(queue)
 
 
-queue = Queue()
-queue.enqueue('A')
-queue.enqueue('B')
-queue.enqueue('C')
-val = queue.dequeue()
-print(val, queue)
+    queue = Queue()
+    queue.enqueue('A')
+    queue.enqueue('B')
+    queue.enqueue('C')
+    val = queue.dequeue()
+    print(val, queue)
