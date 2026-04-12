@@ -20,12 +20,12 @@ def binary_search_iterative(array, value):
         #print(array[middle_index])
 
         if array[middle_index] > value:
-            high_end_index = middle_index
+            high_end_index = middle_index #tämä voisi olla myös middle_index -1
             # recenter middle, round down
             middle_index = (low_end_index + high_end_index) // 2
 
         elif array[middle_index] < value:
-            low_end_index = middle_index
+            low_end_index = middle_index  #tämä voisi olla myös middle_index +1
             # recenter middle, round up te reach the top
             middle_index = ((low_end_index + high_end_index) // 2) + 1
 
