@@ -109,31 +109,55 @@ def dijkstra_shortest_path(start, end, graph):
 
     #initialize path set
     shortest_path_to = {}
+    # list of unvisited veritces
+    unvisited_vertices = []
+
     infinite = float('inf')
     for vertex in graph.get_vertices():
         shortest_path_to[vertex] = {'shortest': infinite, 'previous': None }
+        unvisited_vertices.append(vertex)
 
     #set start to path set
     shortest_path_to[start] = {'shortest': 0, 'previous': None}
 
-    #list of unvisited veritces
-    unvisited_vertices = graph.get_vertices()
-    shortest_distance_vertex = start
-
-    for vertex in unvisited_vertices:
+    #loop all unvisited vertices
+    current_vertex = start
+    while unvisited_vertices:
 
         # get the shortest distance vertex (start at first)
+        current_vertex = unvisited_vertices[0]
 
-        for key, value in shortest_path_to.items():
-            if key in unvisited_vertices and shortest_path_to[shortest_distance_vertex]['shortest'] > value['shortest']:
-                shortest_distance_vertex = key
+        for key_vertex, value in shortest_path_to.items():
+            if key_vertex in unvisited_vertices and shortest_path_to[current_vertex]['shortest'] > value['shortest']:
+                current_vertex = key_vertex
 
-        distance = shortest_distance_vertex['shortest']
+        distance = shortest_path_to[current_vertex]['shortest']
+
         #get adjacent vertices
-        adjacent_vertices = graph.get_adjacent_vertices(shortest_distance_vertex)
+        adjacent_vertices = graph.get_adjacent_vertices(current_vertex)
+        for vertex in adjacent_vertices:
+            if vertex in unvisited_vertices:
+                distance_to_start = distance + graph.get_edge(vertex, current_vertex).value()
 
-        unvisited_vertices.remove(vertex)
+                #if this path is shorter than the existing one, replace
+                if distance_to_start < shortest_path_to[vertex]['shortest']:
+                    shortest_path_to[vertex]['previous'] = current_vertex
+                    shortest_path_to[vertex]['shortest'] = distance_to_start
 
+        print("Visited vertex:",current_vertex)
+        unvisited_vertices.remove(current_vertex)
+
+    #find and return shortest route
+    print(shortest_path_to)
+    target_vertex = end
+    path = [end]
+    while target_vertex != start:
+        target_vertex = shortest_path_to[target_vertex]['previous']
+        path.insert(0,target_vertex)
+
+
+    path_tuple = ( shortest_path_to[end]['shortest'], path)
+    return path_tuple
 
 
 
@@ -170,3 +194,59 @@ if __name__ == "__main__":
     print(dijkstra_shortest_path(A, F, g))
 
     print(float('inf'))
+
+    A = Vertex('A')
+    B = Vertex('B')
+    C = Vertex('C')
+    D = Vertex('D')
+    E = Vertex('E')
+    F = Vertex('F')
+
+    AB = Edge(A, B, 2)
+    AC = Edge(A, C, 4)
+    BD = Edge(B, D, 5)
+    CD = Edge(C, D, 9)
+    CE = Edge(C, E, 3)
+    DF = Edge(D, F, 2)
+    EF = Edge(E, F, 2)
+
+    adj_map = {
+        A: {B: AB, C: AC},
+        B: {A: AB, D: BD},
+        C: {A: AC, D: CD, E: CE},
+        D: {B: BD, C: CD, F: DF},
+        E: {C: CE, F: EF},
+        F: {D: DF, E: EF}
+    }
+
+    g = Graph(adj_map)
+    print(dijkstra_shortest_path(C, D, g))
+    """(7, [ < Vertex: C >, < Vertex: E >, < Vertex: F >, < Vertex: D >])
+    (7, [ < Vertex: C >, < Vertex: E >, < Vertex: F >, < Vertex: D >])"""
+    A = Vertex('A')
+    B = Vertex('B')
+    C = Vertex('C')
+    D = Vertex('D')
+    E = Vertex('E')
+    F = Vertex('F')
+
+    AB = Edge(A, B, 2)
+    AC = Edge(A, C, 4)
+    BD = Edge(B, D, 5)
+    CD = Edge(C, D, 9)
+    CE = Edge(C, E, 3)
+    DF = Edge(D, F, 2)
+    EF = Edge(E, F, 2)
+
+    adj_map = {
+        A: {B: AB, C: AC},
+        B: {A: AB, D: BD},
+        C: {A: AC, D: CD, E: CE},
+        D: {B: BD, C: CD, F: DF},
+        E: {C: CE, F: EF},
+        F: {D: DF, E: EF}
+    }
+
+    g = Graph(adj_map)
+    print(dijkstra_shortest_path(E, D, g))
+    """(4, [ < Vertex: E >, < Vertex: F >, < Vertex: D >])"""
