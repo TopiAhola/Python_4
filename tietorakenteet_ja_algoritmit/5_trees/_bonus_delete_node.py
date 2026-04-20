@@ -133,41 +133,40 @@ class Tree():
 
         #if not found return
         if found_node is None:
-            print("Node not found")
+            #print("Node not found")
             return
 
 
         #if no children
         elif found_node._left_child is None and found_node._right_child is None:
-            print("Node with data", found_node.data, "no children")
-            self._detach_node(found_node)
+            #print("Node with data", found_node.data, "no children")
+            #TODO : this
 
             if found_node == self._root_node:
-                print("Root set to None")
+                #print("Root set to None")
                 self._root_node = None
             del found_node
-            print("deleted found_node 111")
+            #print("deleted found_node 111")
             return
-
 
 
         #if only 1 child
         elif (found_node._left_child is not None and found_node._right_child is None) or (found_node._left_child is None and found_node._right_child is not None):
-            print("Node with data", found_node.data, "1 children:", found_node._left_child.data if found_node._left_child else None,  found_node._right_child.data if found_node._right_child else None)
-            self._detach_node(found_node)
+            #print("Node with data", found_node.data, "1 children:", found_node._left_child.data if found_node._left_child else None,  found_node._right_child.data if found_node._right_child else None)
+            #TODO: this
+
+
             del found_node
-            print("deleted found_node 222")
+            #print("deleted found_node 222")
             return
 
 
         #if 2 children
         elif found_node._left_child is not None and found_node._right_child is not None:
-            print("Node with data", found_node.data, "2 children: ",
-                  found_node._left_child.data if found_node._left_child else None,
-                  found_node._right_child.data if found_node._right_child else None)
+            #print("Node with data", found_node.data, "2 children: ", found_node._left_child.data if found_node._left_child else None, found_node._right_child.data if found_node._right_child else None)
 
             successor = self.find_minimum_node(found_node._right_child)
-            print("Successor is:", successor.data, "2 children: ",successor._left_child.data if successor._left_child else None,  successor._right_child.data if successor._right_child else None)
+            #print("Successor is:", successor.data, "2 children: ",successor._left_child.data if successor._left_child else None,  successor._right_child.data if successor._right_child else None)
 
             #if successor is the right child
             if found_node._right_child == successor:
@@ -192,11 +191,11 @@ class Tree():
                 #set parent point ot successor
                 if found_node._parent is not None:
                     if found_node._parent._left_child is found_node:
-                        print("found node was left child")
+                        #print("found node was left child")
                         found_node._parent._left_child = successor
 
                     elif found_node._parent._right_child is found_node:
-                        print("found node was left child")
+                        #print("found node was left child")
                         found_node._parent._right_child = successor
 
                     else:
@@ -208,11 +207,11 @@ class Tree():
 
             # delete
             del found_node
-            print("deleted found_node 333")
+            #print("deleted found_node 333")
             return
 
         else:
-            #print("Error?")
+            ##print("Error?")
             pass
 
 
@@ -298,7 +297,7 @@ if __name__ == '__main__':
     tree.insert(40)
     tree.insert(30)
     tree.insert(35)
-    print("Before 2:" , tree._find(tree._root_node))
+    print("Before 2:" , tree._find(tree._root_node.data))
     tree.delete_node(50)
     tree.delete_node(20)
     tree.delete_node(70)
@@ -307,7 +306,7 @@ if __name__ == '__main__':
     tree.delete_node(40)
     tree.delete_node(30)
     tree.delete_node(35)
-    print("After 2:", tree._find(tree._root_node))
+    print("After 2:", tree._find(tree._root_node.data))
 
     target = re.compile(tree._find(tree._root_node.data).__str__())
     if re.search(target, "None"):
