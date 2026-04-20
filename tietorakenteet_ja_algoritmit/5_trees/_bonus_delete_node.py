@@ -166,6 +166,7 @@ class Tree():
             #print("Node with data", found_node.data, "2 children: ", found_node._left_child.data if found_node._left_child else None, found_node._right_child.data if found_node._right_child else None)
 
             successor = self.find_minimum_node(found_node._right_child)
+            assert successor is not None
             #print("Successor is:", successor.data, "2 children: ",successor._left_child.data if successor._left_child else None,  successor._right_child.data if successor._right_child else None)
 
             #if successor is the right child
