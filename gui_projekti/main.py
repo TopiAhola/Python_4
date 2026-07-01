@@ -1,16 +1,26 @@
 #tkinter for gui
 import tkinter
-from time import strftime
 from tkinter import *
+#
+from PIL.ImageTk import *
 
 #multithreading
 import threading
 
+#logging
+import logger
 
+#read file function
+from filereader import read_binary_file
 
+#other
+from time import strftime
 
 
 if __name__ == "__main__":
+    #simple logger
+    logger1 = logger.Logger("Logger 1")
+
     #graphics window size
     canvasWidth = 800
     canvasHeight = 600
@@ -18,6 +28,8 @@ if __name__ == "__main__":
 
     #read world from file
 
+    #test picture
+    picture_file : bytes = read_binary_file("kuva.bmp")
 
     #start render thread with world
 
@@ -34,38 +46,40 @@ if __name__ == "__main__":
     #key event logger for window
     def key_pressed(event):
         if not event.char:
-            print("Keypress event without printable character")
+            logger1.log("KeyPressed event without printable character")
+
         else:
-            print(f'{event.char} pressed')
+            logger1.log(f'{event.char} pressed')
+
 
 
     def key_released(event):
         if not event.char:
-            print("KeyReleased event without printable character")
+            logger1.log("KeyReleased event without printable character")
         else:
-            print(f'{event.char} released')
+            logger1.log(f'{event.char} released')
 
     def mouse_button_pressed(event):
         #<ButtonPress event state=Mod1 num=1 x=12 y=11>
         if not event.char:
-            print("Keypress event without printable character")
+            logger1.log("Keypress event without printable character")
         else:
-            print(f'{event} on mouse')
+            logger1.log(f'{event} on mouse')
 
         if event.num == 1:
-            print("Mouse button 1 (left) pressed")
+            logger1.log("Mouse button 1 (left) pressed")
         elif event.num == 2:
-            print("Mouse button 2 (wheel) pressed")
+            logger1.log("Mouse button 2 (wheel) pressed")
         elif event.num == 3:
-            print("Mouse button 3 (right) pressed")
+            logger1.log("Mouse button 3 (right) pressed")
         elif event.num == 4:
-            print("Mouse button 4 (back) pressed")
+            logger1.log("Mouse button 4 (back) pressed")
         elif event.num == 5:
-            print("Mouse button 5 (forward) pressed")
+            logger1.log("Mouse button 5 (forward) pressed")
 
     def mouse_movement(event):
         if event.char:
-            print(f'Mouse movement on {event}')
+            logger1.log(f'Mouse movement on {event}')
 
 
     window.bind("<KeyPress>", key_pressed)
@@ -75,15 +89,29 @@ if __name__ == "__main__":
     window.bind("<Motion>", mouse_movement)
 
     #################################################################
+    # element holding buttons
+    button_bar: Widget = tkinter.Frame(window)
+    button_bar.pack()
+
+
     #buttons
-    button : Button = Button(window, text = "Close")
-    button.bind("<Button-1>", lambda e: window.destroy())
-    button.pack()
+    close_window_button : Button = Button(button_bar, text = "Close")
+    close_window_button.bind("<Button-1>", lambda e: window.destroy())
+    close_window_button.grid(column=3, row=0)
+
+    toggle_logger_button : Button = Button(button_bar, text = "Toggle Logger")
+    toggle_logger_button.bind("<Button-1>", lambda e: logger1.toggle_logger() )
+    toggle_logger_button.grid(column=2, row=0)
+
+    #packing is exclusive with griding
+    #toggle_logger_button.pack()
+    #close_window_button.pack()
+
 
     #################################################################
     #text label clock
-    label = Label(window, text = "This should show time")
-    label.pack()
+    label = Label(button_bar, text = "This should show time")
+    label.grid(column=1, row=1)
 
     #recursive looping function for clock
     def updateLabelFunction():
@@ -96,10 +124,19 @@ if __name__ == "__main__":
     #################################################################
     #canvas for showing image
 
-    canvas : Widget = tkinter.Canvas(window, width=canvasWidth, height=canvasHeight, background="black")
-    #canvas.setvar("background", "black")
+    #frame for canvas
+    canvas_frame: Frame = Frame(window)
+    canvas_frame.pack(side = "bottom", fill = "both", expand = True)
 
+    #pack canvas to frame
+    canvas : Widget = tkinter.Canvas(canvas_frame, width=canvasWidth, height=canvasHeight, background="black")
     canvas.pack()
+
+    #test canvas for showing image
+    a = picture_file.__sizeof__()
+
+    canvas2: Widget = tkinter.Canvas(canvas_frame, width=500, height=500, background="green")
+    canvas2.pack()
 
     #start window loop
     window.mainloop()
