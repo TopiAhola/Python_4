@@ -38,16 +38,41 @@ if __name__ == "__main__":
         else:
             print(f'{event.char} pressed')
 
+
     def key_released(event):
         if not event.char:
             print("KeyReleased event without printable character")
         else:
             print(f'{event.char} released')
 
+    def mouse_button_pressed(event):
+        #<ButtonPress event state=Mod1 num=1 x=12 y=11>
+        if not event.char:
+            print("Keypress event without printable character")
+        else:
+            print(f'{event} on mouse')
+
+        if event.num == 1:
+            print("Mouse button 1 (left) pressed")
+        elif event.num == 2:
+            print("Mouse button 2 (wheel) pressed")
+        elif event.num == 3:
+            print("Mouse button 3 (right) pressed")
+        elif event.num == 4:
+            print("Mouse button 4 (back) pressed")
+        elif event.num == 5:
+            print("Mouse button 5 (forward) pressed")
+
+    def mouse_movement(event):
+        if event.char:
+            print(f'Mouse movement on {event}')
+
+
     window.bind("<KeyPress>", key_pressed)
     window.bind("<KeyRelease>", key_released)
-
-
+    window.bind("<Button>", mouse_button_pressed)
+    #mouse movement
+    window.bind("<Motion>", mouse_movement)
 
     #################################################################
     #buttons
