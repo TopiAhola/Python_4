@@ -29,7 +29,7 @@ if __name__ == "__main__":
     #read world from file
 
     #test picture
-    picture_file : bytes = read_binary_file("kuva.bmp")
+    picture_file : str = read_binary_file("kuva.bmp")
 
     #start render thread with world
 
@@ -133,7 +133,12 @@ if __name__ == "__main__":
     canvas.pack()
 
     #test canvas for showing image
-    a = picture_file.__sizeof__()
+    #tällainen: class PIL.ImageTk.PhotoImage(image: Image | str | None = None, size: tuple[int, int] | None = None, **kw: Any)
+
+    photo_image : PhotoImage = PhotoImage(file="kuva.bmp")
+    #creating a label without taking return value variable
+    Label(canvas_frame, image = photo_image).pack()
+
 
     canvas2: Widget = tkinter.Canvas(canvas_frame, width=500, height=500, background="green")
     canvas2.pack()
