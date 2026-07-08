@@ -16,6 +16,8 @@ from filereader import read_binary_file
 #other
 from time import strftime
 
+#c module
+import oma
 
 if __name__ == "__main__":
     #simple logger
@@ -45,8 +47,7 @@ if __name__ == "__main__":
     #################################################################
     #key event logger for window
     def key_pressed(event):
-        if not event.char:
-            logger1.log("KeyPressed event without printable character")
+        if not event.char: logger1.log("KeyPressed event without printable character")
 
         else:
             logger1.log(f'{event.char} pressed')
@@ -94,24 +95,23 @@ if __name__ == "__main__":
     button_bar.pack()
 
 
-    #buttons
+    #some buttons
     close_window_button : Button = Button(button_bar, text = "Close")
     close_window_button.bind("<Button-1>", lambda e: window.destroy())
-    close_window_button.grid(column=3, row=0)
+    close_window_button.grid(column=0, row=0)
 
     toggle_logger_button : Button = Button(button_bar, text = "Toggle Logger")
     toggle_logger_button.bind("<Button-1>", lambda e: logger1.toggle_logger() )
-    toggle_logger_button.grid(column=2, row=0)
+    toggle_logger_button.grid(column=0, row=1)
 
     #packing is exclusive with griding
     #toggle_logger_button.pack()
     #close_window_button.pack()
 
-
     #################################################################
     #text label clock
     label = Label(button_bar, text = "This should show time")
-    label.grid(column=1, row=1)
+    label.grid(column=0, row=4)
 
     #recursive looping function for clock
     def updateLabelFunction():
@@ -120,6 +120,23 @@ if __name__ == "__main__":
 
     #run the function
     updateLabelFunction()
+
+    #################################################################
+    # label showing results from c module
+    label2 = Label(button_bar, text="This should show return value from c function")
+    label2.grid(column=0, row=5)
+
+    #function calling c function
+    def run_c_function():
+        label2["text"] = ""
+
+    #button for running the c function
+    run_c_function_button: Button = Button(button_bar, text="Run c function")
+    run_c_function_button.bind("<Button-1>", lambda e: run_c_function())
+    run_c_function_button.grid(column=0, row=2)
+
+
+
 
     #################################################################
     #canvas for showing image
