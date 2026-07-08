@@ -18,6 +18,14 @@ from time import strftime
 
 #c module
 
+"""
+???
+In Windows, using an import library is sort of like using import spam; it gives you access to spam’s names, but does not create a separate copy. On Unix, linking with a library is more like from spam import *; it does create a separate copy.
+"""
+
+#compile the ce file?
+from setuptools
+
 
 if __name__ == "__main__":
     #simple logger
