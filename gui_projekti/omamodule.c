@@ -10,8 +10,26 @@ Note Since Python may define some pre-processor definitions which affect the sta
 #include <Python.h>  //tämä täytyy importata ennen muita header fileja
 
 
-static PyObject *
+//ini
+static int
+spam_module_exec(PyObject *m)
+{
+    if (SpamError != NULL) {
+        PyErr_SetString(PyExc_ImportError,
+                        "cannot initialize spam module more than once");
+        return -1;
+    }
+    SpamError = PyErr_NewException("spam.error", NULL, NULL);
+    if (PyModule_AddObjectRef(m, "SpamError", SpamError) < 0) {
+        return -1;
+    }
 
+    return 0;
+}
+
+
+
+static PyObject *
 funktio1(PyObject *self, PyObject *args)
 {
     const char *command;
@@ -24,6 +42,18 @@ funktio1(PyObject *self, PyObject *args)
     //pass command char* string as system command return response value as long number
     sts = system(command);
     return PyLong_FromLong(sts);
+}
+
+static PyObject *
+integer_sum(PyObject *self, PyObject *args)
+{
+    const int * command;
+    int result;
+
+    
+
+
+    return PyInt_FromInt(result);
 }
 
 
