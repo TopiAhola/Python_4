@@ -17,7 +17,7 @@ from filereader import read_binary_file
 from time import strftime
 
 #c module
-import oma
+
 
 if __name__ == "__main__":
     #simple logger
